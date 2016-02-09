@@ -42,6 +42,10 @@ var JSNES = function(opts) {
     
     this.frameTime = 1000 / this.opts.preferredFrameRate;
     
+    // OwenMcNaughton
+        this.current_frame = {sprites: []};
+        this.frames = [];
+    
     this.ui = new this.opts.ui(this);
     this.cpu = new JSNES.CPU(this);
     this.ppu = new JSNES.PPU(this);
@@ -150,6 +154,10 @@ JSNES.prototype = {
             }
         }
         this.fpsFrameCount++;
+        
+        // OwenMcNaughton
+            this.frames.push(this.current_frame);
+            this.current_frame = {sprites: []};
     },
     
     printFps: function() {

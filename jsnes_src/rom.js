@@ -151,7 +151,7 @@ JSNES.ROM.prototype = {
         for (i=0; i < this.vromCount; i++) {
             this.vromTile[i] = new Array(256);
             for (j=0; j < 256; j++) {
-                this.vromTile[i][j] = new JSNES.PPU.Tile();
+                this.vromTile[i][j] = new JSNES.PPU.Tile(this.nes);
             }
         }
         

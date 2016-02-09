@@ -206,7 +206,7 @@ JSNES.PPU.prototype = {
         // Create pattern table tile buffers:
         this.ptTile = new Array(512);
         for (i=0; i<512; i++) {
-            this.ptTile[i] = new JSNES.PPU.Tile();
+            this.ptTile[i] = new JSNES.PPU.Tile(this.nes);
         }
         
         // Create nametable buffers:
@@ -1758,7 +1758,7 @@ JSNES.PPU.PaletteTable.prototype = {
     }
 };
 
-JSNES.PPU.Tile = function() {
+JSNES.PPU.Tile = function(nes) {
     // Tile data:
     this.pix = new Array(64);
     
@@ -1775,6 +1775,8 @@ JSNES.PPU.Tile = function() {
     this.c = null;
     this.initialized = false;
     this.opaque = new Array(8);
+    
+    this.nes = nes;
 };
     
 JSNES.PPU.Tile.prototype = {
@@ -1797,6 +1799,9 @@ JSNES.PPU.Tile.prototype = {
     },
     
     render: function(buffer, srcx1, srcy1, srcx2, srcy2, dx, dy, palAdd, palette, flipHorizontal, flipVertical, pri, priTable) {
+        // OwenMcNaughton
+            var sprite_info = {pos: {x: dx, y: dy}, size: srcx2 - srcx1};
+            this.nes.current_frame.sprites.push(sprite_info);
 
         if (dx<-7 || dx>=256 || dy<-7 || dy>=240) {
             return;
