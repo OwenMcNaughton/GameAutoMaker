@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<style>
+  
+</style>
+
+</head>
+
+<body>
+  <div id="emulator"></div>
+
+  <script src="lib/jquery-1.4.2.min.js"></script>
+  <script src="jsnes_src/nes.js"></script>
+  <script src="jsnes_src/utils.js"></script>
+  <script src="jsnes_src/cpu.js"></script>
+  <script src="jsnes_src/keyboard.js"></script>
+  <script src="jsnes_src/mappers.js"></script>
+  <script src="jsnes_src/papu.js"></script>
+  <script src="jsnes_src/ppu.js"></script>
+  <script src="jsnes_src/rom.js"></script>
+  <script src="jsnes_src/ui.js"></script>
+     
+  <script>
+  
+var nes = new JSNES({
+  'ui': $('#emulator').JSNESUI({
+    "Roms": [
+      ['Super Mario Bros', 'roms/Super Mario Bros..nes']
+    ]
+  })
+});
+
+  </script>
+  <!--[if IE]>
+    <script type="text/vbscript" src="source/jsnes-ie-hacks.vbscript"></script>
+  <![endif]-->
+
+</body>
+</html>

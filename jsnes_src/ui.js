@@ -50,7 +50,6 @@ if (typeof jQuery !== 'undefined') {
                 self.buttons = {
                     pause: $('<input type="button" value="pause" class="nes-pause" disabled="disabled">').appendTo(self.controls),
                     restart: $('<input type="button" value="restart" class="nes-restart" disabled="disabled">').appendTo(self.controls),
-                    sound: $('<input type="button" value="enable sound" class="nes-enablesound">').appendTo(self.controls),
                     zoom: $('<input type="button" value="zoom in" class="nes-zoom">').appendTo(self.controls)
                 };
                 self.status = $('<p class="nes-status">Booting up...</p>').appendTo(self.root);
@@ -81,17 +80,6 @@ if (typeof jQuery !== 'undefined') {
                 self.buttons.restart.click(function() {
                     self.nes.reloadRom();
                     self.nes.start();
-                });
-        
-                self.buttons.sound.click(function() {
-                    if (self.nes.opts.emulateSound) {
-                        self.nes.opts.emulateSound = false;
-                        self.buttons.sound.attr("value", "enable sound");
-                    }
-                    else {
-                        self.nes.opts.emulateSound = true;
-                        self.buttons.sound.attr("value", "disable sound");
-                    }
                 });
         
                 self.zoomed = false;
@@ -167,13 +155,6 @@ if (typeof jQuery !== 'undefined') {
                     bind('keypress', function(evt) {
                         self.nes.keyboard.keyPress(evt);
                     });
-            
-                /*
-                 * Sound
-                 */
-                self.dynamicaudio = new DynamicAudio({
-                    swf: nes.opts.swfPath+'dynamicaudio.swf'
-                });
             };
         
             UI.prototype = {    
