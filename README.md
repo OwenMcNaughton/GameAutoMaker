@@ -7,3 +7,5 @@ different games to create groundbreaking new genres.
 
 Comes with a NES emulator (by [bfirsh](https://github.com/bfirsh/jsnes)) already 
 set up to output data.
+
+# It doesn't work yet #

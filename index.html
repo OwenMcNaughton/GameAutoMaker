@@ -10,6 +10,10 @@
 
 <body>
   <div id="emulator"></div>
+  
+  <div>
+    <canvas id="canvas" width="256" height="256"></canvas>
+  </div>
 
   <script src="lib/jquery-1.4.2.min.js"></script>
   <script src="jsnes_src/nes.js"></script>
@@ -21,9 +25,18 @@
   <script src="jsnes_src/ppu.js"></script>
   <script src="jsnes_src/rom.js"></script>
   <script src="jsnes_src/ui.js"></script>
+  <script src="src/util.js"></script>
+  <script src="src/GameAutoMaker.js"></script>
      
   <script>
+
+var PIX_TOL = 1,
+    MOV_TOL = 5;
   
+var fps, last_date, second = 0, frame_count = 0;
+
+var canvas = document.getElementById('canvas');
+
 var nes = new JSNES({
   'ui': $('#emulator').JSNESUI({
     "Roms": [
@@ -31,6 +44,38 @@ var nes = new JSNES({
     ]
   })
 });
+
+var gam = new GameAutoMaker(nes.frames);
+
+window.requestAnimationFrame(Draw);
+
+function Draw() {
+  frame_count += 3;
+  if (frame_count >= gam.footage.length - 3) {
+    frame_count = 1;
+    gam = new GameAutoMaker(nes.frames, PIX_TOL, MOV_TOL);
+  }
+  
+  gam.ProcessFrame(frame_count);
+  
+  var ctx = canvas.getContext('2d');
+  
+  ctx.clearRect(0, 0, 256, 256);
+  ctx.fillStyle = "#222222";
+  ctx.fillRect(0, 0, 256, 256);
+  
+  for (var i = 0; i != gam.sprite_groups.length; i++) {
+    ctx.fillStyle = gam.sprite_groups[i].color;
+    for (var j = 0; j != gam.sprite_groups[i].s.length; j++) {
+      ctx.fillRect(gam.sprite_groups[i].s[j].pos.x,
+                   gam.sprite_groups[i].s[j].pos.y,
+                   gam.sprite_groups[i].s[j].size,
+                   gam.sprite_groups[i].s[j].size);
+      
+    }
+  }
+  window.requestAnimationFrame(Draw);
+}
 
   </script>
   <!--[if IE]>
