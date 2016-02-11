@@ -14,11 +14,21 @@
   <div>
     <canvas id="canvas" width="256" height="256"></canvas>
     <br>
+    
+    <input name="REPLAY_SPEED" id="REPLAY_SPEED" type="range" min="0.02" 
+       max="5" step=".01" value="2"/>
     <label class="lab">Speed</label>&nbsp
     <output class="lab" id="RS_LAB">2</output>
-    <input name="REPLAY_SPEED" id="REPLAY_SPEED" type="range" min="0.02" 
-       max="5" step=".01" value="2" onchange="ReplaySpeedChange()"/>
+    <button onclick="replay_dir *= -1;" type="button">Reverse</button>
     <br>
+    
+    <input name="TIMELINE" id="TIMELINE" type="range" min="1" 
+       max="1" step="1" value="1"/>
+    <label class="lab">Frame</label>&nbsp
+    <output class="lab" id="Fr_LAB">1</output>
+    <button onclick="Pause();" type="button">Pause</button>
+    <br>
+    
     <button onclick="SaveData()" type="button">SaveData</button>
     <button onclick="LoadData()" type="button">LoadData</button>
   </div>
@@ -41,7 +51,8 @@
 var PIX_TOL = 1,
     MOV_TOL = 5;
   
-var fps, last_date, second = 0, frame_count = 0, replay_speed = 1;
+var fps, last_date, second = 0, frame_count = 0, replay_speed = 1, 
+    paused = false, replay_dir = 1;
 
 var canvas = document.getElementById('canvas');
 
@@ -68,16 +79,19 @@ var nes = new JSNES({
   })
 });
 
-var gam = new GameAutoMaker(nes.frames);
+var gam = new GameAutoMaker(nes.frames, PIX_TOL, MOV_TOL);
 
 window.requestAnimationFrame(Draw);
 
 function Draw() {
-  frame_count += replay_speed * 2;
-  if (frame_count >= gam.footage.length - replay_speed) {
+  SliderUpdate();
+  
+  if (!paused) frame_count += (replay_speed * 2) * replay_dir;
+  
+  if (frame_count >= gam.frames.length - replay_speed) {
     frame_count = 1;
     if (nes.frames.length > 0) {
-      gam = new GameAutoMaker(nes.frames, PIX_TOL, MOV_TOL);
+      gam.ResetFrames(nes.frames);
     }
   }
   
@@ -89,33 +103,39 @@ function Draw() {
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, 256, 256);
   
-  for (var i = 0; i < gam.sprite_groups.length; i++) {
-    ctx.fillStyle = gam.sprite_groups[i].color;
-    for (var j = 0; j < gam.sprite_groups[i].s.length; j++) {
-      ctx.fillRect(gam.sprite_groups[i].s[j].pos.x,
-                   gam.sprite_groups[i].s[j].pos.y,
-                   gam.sprite_groups[i].s[j].size,
-                   gam.sprite_groups[i].s[j].size);
-      
-    }
-  }
+  gam.Draw(ctx);
+
   window.requestAnimationFrame(Draw);
 }
 
 function SaveData() {
-  localStorage.setItem('frame_data', JSON.stringify(gam.footage));
+  localStorage.setItem('frame_data', JSON.stringify(gam.frames));
 }
 
 function LoadData() {
   var frame_data = localStorage.getItem('frame_data');
   if (frame_data != "") {
-    gam.footage = JSON.parse(frame_data);
+    gam.frames = JSON.parse(frame_data);
   }
 }
 
-function ReplaySpeedChange() {
+function SliderUpdate() {
   replay_speed = Number(document.querySelector('#REPLAY_SPEED').value);
   document.querySelector('#RS_LAB').value = replay_speed;
+  
+  if (paused) {
+    frame_count = Number(document.querySelector('#TIMELINE').value);
+  }
+  
+  document.querySelector('#TIMELINE').setAttribute("max", gam.frames.length);
+  document.querySelector('#TIMELINE').value = Math.floor(frame_count);
+  
+  document.querySelector('#Fr_LAB').value = Math.floor(frame_count);
+}
+
+function Pause() {
+  paused = !paused;
+  document.querySelector('#TIMELINE').value = Math.floor(frame_count);
 }
 
   </script>

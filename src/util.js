@@ -27,9 +27,16 @@ function RectOverlap(r1, r2) {
 
 function GetRandomColors(cnt) {
   var colors = [];
-  for (var i = 0; i != cnt; i++) {
+  
+  colors = ["#006699", "#cc0000", "#ffff00", "#009933", "#00ffff", "#cc00cc",
+            "#99ff99", "#33ccff", "#cc9900", "#ff6666", "#ccff66", "#ffcccc",
+            "#666699", "#003300", "#660066", "#cc99ff", "#339966", "#993366",
+            "#666633", "#ffcccc", "#ccccff", "#ccffff", "#ffffff", "#ff6699"]
+  
+  for (var i = 0; i < cnt - 24; i++) {
     colors.push(GetRandomColor());
   }
+  
   return colors;
 }
 

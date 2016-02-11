@@ -1,5 +1,5 @@
-function GameAutoMaker(footage, pix_tol, move_tol) {
-  this.footage = footage;
+function GameAutoMaker(frames, pix_tol, move_tol) {
+  this.frames = frames;
   this.pix_tol = pix_tol;
   this.move_tol = move_tol;
   this.sprite_groups = [];
@@ -8,9 +8,14 @@ function GameAutoMaker(footage, pix_tol, move_tol) {
 }
 
 GameAutoMaker.prototype = {
+  ResetFrames: function(frames) {
+    this.frames = frames;
+  },
+  
   ProcessFrame: function(idx) {
     var sprite_groups = [];
-    var frame = this.footage[idx];
+    var old_sprite_groups = this.sprite_groups;
+    var frame = this.frames[idx];
     
     if (frame == undefined) return;
     
@@ -37,7 +42,7 @@ GameAutoMaker.prototype = {
         }
         if (done) continue;
         
-        var sg = {s: [sprites[i].s], c: Centroid([sprites[i].s])};
+        var sg = {s: [sprites[i].s], c: Centroid([sprites[i].s]), trail: []};
         for (var j = 0; j < sprites.length; j++) {
           if (i != j && sprites[j].b) {
             if (SpriteOverlap(sprites[i].s, sprites[j].s)) {
@@ -55,18 +60,44 @@ GameAutoMaker.prototype = {
       sprite_groups[i].color = this.colors[i];
     }
     
-    /*
     for (var i = 0; i < sprite_groups.length; i++) {
-      for (var j = 0; j < this.sprite_groups.length; j++) {
-        if (Dist(sprite_groups[i].c, this.sprite_groups[j].c) < this.move_tol) {
-          this.sprite_groups.splice(j, 1, sprite_groups[i]);
+      var sg = sprite_groups[i];
+      for (var j = 0; j < old_sprite_groups.length; j++) {
+        if (Dist(sg.c, old_sprite_groups[j].c) < this.move_tol) {
+          sg.color = old_sprite_groups[j].color;
+          sg.trail = old_sprite_groups[j].trail;
+          sg.trail.push(old_sprite_groups[j].c);
         } else {
-          this.sprite_groups.push(sprite_groups[i]);
+          
         }
       }
     }
-    */
     
     this.sprite_groups = sprite_groups;
   },
+  
+  Draw: function(ctx) {
+    for (var i = 0; i < this.sprite_groups.length; i++) {
+      ctx.fillStyle = this.sprite_groups[i].color;
+      for (var j = 0; j < this.sprite_groups[i].s.length; j++) {
+        ctx.fillRect(this.sprite_groups[i].s[j].pos.x,
+                     this.sprite_groups[i].s[j].pos.y,
+                     this.sprite_groups[i].s[j].size,
+                     this.sprite_groups[i].s[j].size);
+      }
+    }
+    
+    for (var i = 0; i < this.sprite_groups.length; i++) {
+      var sg = this.sprite_groups[i];
+      ctx.strokeStyle = sg.color;
+      ctx.lineWidth = 3;
+      for (var j = 1; j < sg.trail.length; j++) {
+        ctx.beginPath();
+        ctx.moveTo(sg.trail[j-1].x, sg.trail[j-1].y);
+        ctx.lineTo(sg.trail[j].x, sg.trail[j].y);
+        ctx.stroke();
+      }
+    }
+    
+  }
 };
