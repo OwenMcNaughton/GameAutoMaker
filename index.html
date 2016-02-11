@@ -57,26 +57,7 @@ var fps, last_date, second = 0, frame_count = 0, replay_speed = 1,
 var canvas = document.getElementById('canvas');
 
 var nes = new JSNES({
-  'ui': $('#emulator').JSNESUI({
-    "Roms": [
-      'Blaster Master.nes',
-      'Bomberman.nes',
-      'Bubble Bobble.nes',
-      'Castlevania.nes',
-      'Contra.nes',
-      'Donkey Kong.nes',
-      'Final Fantasy.nes',
-      'Legend of Zelda, The.nes',
-      'Mario Bros..nes',
-      'Mega Man.nes',
-      'Pac Man (Namco).nes',
-      'Super Mario Bros. 2.nes',
-      'Super Mario Bros. 3.nes',
-      'Super Mario Bros..nes',
-      'Super Pitfall.nes',
-      'Tetris (Nintendo).nes'
-    ]
-  })
+  'ui': $('#emulator').JSNESUI()
 });
 
 var gam = new GameAutoMaker(nes.frames, PIX_TOL, MOV_TOL);
@@ -140,7 +121,7 @@ function Pause() {
 
   </script>
   <!--[if IE]>
-    <script type="text/vbscript" src="source/jsnes-ie-hacks.vbscript"></script>
+      <script type="text/vbscript" src="source/jsnes-ie-hacks.vbscript"></script>
   <![endif]-->
 
 </body>

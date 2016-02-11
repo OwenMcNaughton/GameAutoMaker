@@ -26,7 +26,7 @@ JSNES.DummyUI = function(nes) {
 
 if (typeof jQuery !== 'undefined') {
     (function($) {
-        $.fn.JSNESUI = function(roms) {
+        $.fn.JSNESUI = function() {
             var parent = this;
             var UI = function(nes) {
                 var self = this;
@@ -43,11 +43,9 @@ if (typeof jQuery !== 'undefined') {
                     return;
                 }
                 
-                self.romContainer = $('<div class="nes-roms"></div>').appendTo(self.root);
-                self.romSelect = $('<select></select>').appendTo(self.romContainer);
-                
                 self.controls = $('<div class="nes-controls"></div>').appendTo(self.root);
                 self.buttons = {
+                    load: $('<input type="file" class="nes-load"><br>').appendTo(self.controls),
                     pause: $('<input type="button" value="pause" class="nes-pause" disabled="disabled">').appendTo(self.controls),
                     restart: $('<input type="button" value="restart" class="nes-restart" disabled="disabled">').appendTo(self.controls),
                     zoom: $('<input type="button" value="zoom in" class="nes-zoom">').appendTo(self.controls)
@@ -56,15 +54,20 @@ if (typeof jQuery !== 'undefined') {
                 self.root.appendTo(parent);
                 
                 /*
-                 * ROM loading
-                 */
-                self.romSelect.change(function() {
-                    self.loadROM();
-                });
-                
-                /*
                  * Buttons
                  */
+                self.buttons.load.change(function() {
+                    var rom = this.files[0];
+                    var reader = new FileReader();
+                    reader.onload = (function(nes) { 
+                        return function(e) {
+                            nes.loadRom(e.target.result);
+                            nes.start();
+                        };
+                    })(nes);
+                    reader.readAsText(rom, 'x-user-defined');
+                });
+                 
                 self.buttons.pause.click(function() {
                     if (self.nes.isRunning) {
                         self.nes.stop();
@@ -125,10 +128,6 @@ if (typeof jQuery !== 'undefined') {
                     });
                 }
             
-                if (typeof roms != 'undefined') {
-                    self.setRoms(roms);
-                }
-            
                 /*
                  * Canvas
                  */
@@ -158,41 +157,6 @@ if (typeof jQuery !== 'undefined') {
             };
         
             UI.prototype = {    
-                loadROM: function() {
-                    var self = this;
-                    self.updateStatus("Downloading...");
-                    $.ajax({
-                        url: escape(self.romSelect.val()),
-                        xhr: function() {
-                            var xhr = $.ajaxSettings.xhr();
-                            if (typeof xhr.overrideMimeType !== 'undefined') {
-                                // Download as binary
-                                xhr.overrideMimeType('text/plain; charset=x-user-defined');
-                            }
-                            self.xhr = xhr;
-                            return xhr;
-                        },
-                        complete: function(xhr, status) {
-                            var i, data;
-                            if (JSNES.Utils.isIE()) {
-                                var charCodes = JSNESBinaryToArray(
-                                    xhr.responseBody
-                                ).toArray();
-                                data = String.fromCharCode.apply(
-                                    undefined, 
-                                    charCodes
-                                );
-                            }
-                            else {
-                                data = xhr.responseText;
-                            }
-                            self.nes.loadRom(data);
-                            self.nes.start();
-                            self.enable();
-                        }
-                    });
-                },
-                
                 resetCanvas: function() {
                     this.canvasContext.fillStyle = 'black';
                     // set alpha to opaque
@@ -232,24 +196,7 @@ if (typeof jQuery !== 'undefined') {
                 updateStatus: function(s) {
                     this.status.text(s);
                 },
-        
-                setRoms: function(roms) {
-                    this.romSelect.children().remove();
-                    $("<option>Select a ROM...</option>").appendTo(this.romSelect);
-                    for (var groupName in roms) {
-                        if (roms.hasOwnProperty(groupName)) {
-                            var optgroup = $('<optgroup></optgroup>').
-                                attr("label", groupName);
-                            for (var i = 0; i < roms[groupName].length; i++) {
-                                $('<option>' + roms[groupName][i] + '</option>')
-                                    .attr("value", "roms/" + roms[groupName][i])
-                                    .appendTo(optgroup);
-                            }
-                            this.romSelect.append(optgroup);
-                        }
-                    }
-                },
-            
+
                 writeAudio: function(samples) {
                     return this.dynamicaudio.writeInt(samples);
                 },
