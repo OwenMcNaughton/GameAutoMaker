@@ -227,12 +227,6 @@ if (typeof jQuery !== 'undefined') {
                         this.buttons.pause.attr("value", "resume");
                     }
                     this.buttons.restart.attr("disabled", null);
-                    if (this.nes.opts.emulateSound) {
-                        this.buttons.sound.attr("value", "disable sound");
-                    }
-                    else {
-                        this.buttons.sound.attr("value", "enable sound");
-                    }
                 },
             
                 updateStatus: function(s) {
@@ -247,8 +241,8 @@ if (typeof jQuery !== 'undefined') {
                             var optgroup = $('<optgroup></optgroup>').
                                 attr("label", groupName);
                             for (var i = 0; i < roms[groupName].length; i++) {
-                                $('<option>'+roms[groupName][i][0]+'</option>')
-                                    .attr("value", roms[groupName][i][1])
+                                $('<option>' + roms[groupName][i] + '</option>')
+                                    .attr("value", "roms/" + roms[groupName][i])
                                     .appendTo(optgroup);
                             }
                             this.romSelect.append(optgroup);
