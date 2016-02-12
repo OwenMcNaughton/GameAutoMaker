@@ -50,6 +50,15 @@ function SpriteOverlap(s1, s2) {
               
 function Dist(v1, v2){
   var xd = Math.abs(v1.x - v2.x);
-  var yd = Math.abs(v2.y - v2.y);
+  var yd = Math.abs(v1.y - v2.y);
   return xd*xd + yd*yd;
+}
+
+function HexToRgb(hex) {
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
 }

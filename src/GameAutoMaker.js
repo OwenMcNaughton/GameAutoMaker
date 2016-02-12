@@ -63,10 +63,13 @@ GameAutoMaker.prototype = {
     for (var i = 0; i < sprite_groups.length; i++) {
       var sg = sprite_groups[i];
       for (var j = 0; j < old_sprite_groups.length; j++) {
+        var dist = Dist(sg.c, old_sprite_groups[j].c);
         if (Dist(sg.c, old_sprite_groups[j].c) < this.move_tol) {
           sg.color = old_sprite_groups[j].color;
           sg.trail = old_sprite_groups[j].trail;
-          sg.trail.push(old_sprite_groups[j].c);
+          if (dist > 1) {
+            sg.trail.push(old_sprite_groups[j].c);
+          }
         } else {
           
         }
@@ -90,14 +93,17 @@ GameAutoMaker.prototype = {
     for (var i = 0; i < this.sprite_groups.length; i++) {
       var sg = this.sprite_groups[i];
       ctx.strokeStyle = sg.color;
-      ctx.lineWidth = 3;
-      for (var j = 1; j < sg.trail.length; j++) {
+      ctx.lineWidth = 2;
+      var rgb = HexToRgb(sg.color);
+      var a = 1.0;
+      for (var j = 1; j < sg.trail.length && a > 0; j++) {
+        ctx.strokeStyle = "rgba("+rgb.r+","+rgb.g+","+rgb.b+","+a+")";
+        a -= .005;
         ctx.beginPath();
         ctx.moveTo(sg.trail[j-1].x, sg.trail[j-1].y);
         ctx.lineTo(sg.trail[j].x, sg.trail[j].y);
         ctx.stroke();
       }
     }
-    
   }
 };

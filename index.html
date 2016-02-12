@@ -49,7 +49,7 @@
   <script>
 
 var PIX_TOL = 1,
-    MOV_TOL = 5;
+    MOV_TOL = 144;
   
 var fps, last_date, second = 0, frame_count = 0, replay_speed = 1, 
     paused = false, replay_dir = 1;
@@ -70,7 +70,7 @@ function Draw() {
   if (!paused) frame_count += (replay_speed * 2) * replay_dir;
   
   if (frame_count >= gam.frames.length - replay_speed) {
-    frame_count = 1;
+    frame_count = 0;
     if (nes.frames.length > 0) {
       gam.ResetFrames(nes.frames);
     }
