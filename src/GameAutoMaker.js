@@ -4,6 +4,8 @@ function GameAutoMaker(frames, pix_tol, move_tol) {
   this.move_tol = move_tol;
   this.sprite_groups = [];
   
+  this.last_frame = 0;
+  
   this.colors = GetRandomColors(100);
 }
 
@@ -17,6 +19,10 @@ GameAutoMaker.prototype = {
     var old_sprite_groups = this.sprite_groups;
     var frame = this.frames[idx];
     
+    for (var key of this.colors.keys()) {
+      this.colors[key] = true;
+    }
+    
     if (frame == undefined) return;
     
     var sprites = [];
@@ -28,47 +34,22 @@ GameAutoMaker.prototype = {
       if (sprites[i].b) {
         sprites[i].b = false;
         
-        var done = false;
-        for (var j = 0; j < sprite_groups.length; j++) {
-          for (var k = 0; k < sprite_groups[j].s.length; k++) {
-            if (SpriteOverlap(sprites[i].s, sprite_groups[j].s[k])) {
-              sprite_groups[j].s.push(sprites[i].s);
-              sprite_groups[j].c = Centroid(sprite_groups[j].s);
-              done = true;
-              break;
-            }
-          }
-          if (done) break;
-        }
-        if (done) continue;
+        if (this.MergeSpriteWithGroup(i, sprites, sprite_groups)) continue;
         
-        var sg = {s: [sprites[i].s], c: Centroid([sprites[i].s]), trail: []};
-        for (var j = 0; j < sprites.length; j++) {
-          if (i != j && sprites[j].b) {
-            if (SpriteOverlap(sprites[i].s, sprites[j].s)) {
-              sprites[j].b = false;
-              sg.s.push(sprites[j].s);
-              sg.c = Centroid(sg.s);
-            }
-          }
-        }
-        sprite_groups.push(sg);
+        this.CreateSpriteGroup(i, sprites, sprite_groups);
       }
     }
-    
-    for (var i = 0; i < sprite_groups.length; i++) {
-      sprite_groups[i].color = this.colors[i];
-    }
-    
-    for (var i = 0; i < sprite_groups.length; i++) {
-      var sg = sprite_groups[i];
-      for (var j = 0; j < old_sprite_groups.length; j++) {
-        var dist = Dist(sg.c, old_sprite_groups[j].c);
-        if (Dist(sg.c, old_sprite_groups[j].c) < this.move_tol) {
-          sg.color = old_sprite_groups[j].color;
-          sg.trail = old_sprite_groups[j].trail;
+
+    for (var sg of sprite_groups) {
+      for (var osg of old_sprite_groups) {
+        var dist = Dist(sg.c, osg.c);
+        if (dist < this.move_tol) {
+          sg.color = osg.color;
+          this.colors[sg.color] = false;
+          sg.trail = osg.trail;
+          sg.age = osg.age + 1;
           if (dist > 1) {
-            sg.trail.push(old_sprite_groups[j].c);
+            sg.trail.push(osg.c);
           }
         } else {
           
@@ -76,29 +57,81 @@ GameAutoMaker.prototype = {
       }
     }
     
-    this.sprite_groups = sprite_groups;
-  },
-  
-  Draw: function(ctx) {
-    for (var i = 0; i < this.sprite_groups.length; i++) {
-      ctx.fillStyle = this.sprite_groups[i].color;
-      for (var j = 0; j < this.sprite_groups[i].s.length; j++) {
-        ctx.fillRect(this.sprite_groups[i].s[j].pos.x,
-                     this.sprite_groups[i].s[j].pos.y,
-                     this.sprite_groups[i].s[j].size,
-                     this.sprite_groups[i].s[j].size);
+    for (var i = 0; i < sprite_groups.length; i++) {
+      if (sprite_groups[i].color == undefined) {
+        sprite_groups[i].color = GetFreeColor(this.colors);
       }
     }
     
-    for (var i = 0; i < this.sprite_groups.length; i++) {
-      var sg = this.sprite_groups[i];
+    this.sprite_groups = sprite_groups;
+    this.last_frame = idx;
+  },
+  
+  MergeSpriteWithGroup: function(i, sprites, sprite_groups) {
+    var done = false;
+    for (var j = 0; j < sprite_groups.length; j++) {
+      for (var k = 0; k < sprite_groups[j].s.length; k++) {
+        if (SpriteOverlap(sprites[i].s, sprite_groups[j].s[k])) {
+          sprite_groups[j].s.push(sprites[i].s);
+          sprite_groups[j].c = Centroid(sprite_groups[j].s);
+          done = true;
+          break;
+        }
+      }
+      if (done) break;
+    }
+    return done;
+  },
+  
+  CreateSpriteGroup: function(i, sprites, sprite_groups) {
+    var sg = {
+      s: [sprites[i].s], c: Centroid([sprites[i].s]), trail: [], age: 0
+    };
+    for (var j = 0; j < sprites.length; j++) {
+      if (i != j && sprites[j].b) {
+        if (SpriteOverlap(sprites[i].s, sprites[j].s)) {
+          sprites[j].b = false;
+          sg.s.push(sprites[j].s);
+          sg.c = Centroid(sg.s);
+        }
+      }
+    }
+    sprite_groups.push(sg);
+  },
+  
+  Draw: function(ctx) {
+    ctx.fillStyle = "#FFFFFF";
+    for (var sg of this.sprite_groups) {
+      ctx.strokeStyle = sg.color;
+      ctx.lineWidth = 2;
+      
+      var tl = {x: 1000, y: 1000};
+      for (var s of sg.s) {
+        if (s.pos.x < tl.x) tl.x = s.pos.x;
+        if (s.pos.y < tl.y) tl.y = s.pos.y;
+        
+        ctx.beginPath();
+        ctx.rect(s.pos.x, s.pos.y, s.size, s.size);
+        ctx.stroke();
+      }
+      
+      ctx.font = "10px Arial";
+      ctx.fillText("" + sg.age, tl.x, tl.y-2);
+      
+      ctx.beginPath();
+      ctx.lineWidth = 1;
+      ctx.arc(sg.c.x, sg.c.y, 1, 0, 2*Math.PI);
+      ctx.stroke();
+    }
+    
+    for (var sg of this.sprite_groups) {
       ctx.strokeStyle = sg.color;
       ctx.lineWidth = 2;
       var rgb = HexToRgb(sg.color);
       var a = 1.0;
       for (var j = 1; j < sg.trail.length && a > 0; j++) {
         ctx.strokeStyle = "rgba("+rgb.r+","+rgb.g+","+rgb.b+","+a+")";
-        a -= .005;
+        // a -= .005;
         ctx.beginPath();
         ctx.moveTo(sg.trail[j-1].x, sg.trail[j-1].y);
         ctx.lineTo(sg.trail[j].x, sg.trail[j].y);

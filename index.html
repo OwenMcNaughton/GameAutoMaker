@@ -51,8 +51,8 @@
 var PIX_TOL = 1,
     MOV_TOL = 144;
   
-var fps, last_date, second = 0, frame_count = 0, replay_speed = 1, 
-    paused = false, replay_dir = 1;
+var fps, last_date, second = 0, frame_count = 0, last_frame_count = 0,
+    replay_speed = 1, paused = false, replay_dir = 1;
 
 var canvas = document.getElementById('canvas');
 
@@ -71,12 +71,22 @@ function Draw() {
   
   if (frame_count >= gam.frames.length - replay_speed) {
     frame_count = 0;
+    last_frame_count = 0;
     if (nes.frames.length > 0) {
       gam.ResetFrames(nes.frames);
     }
   }
   
-  gam.ProcessFrame(Math.floor(frame_count));
+  if (paused) {
+    gam.ProcessFrame(frame_count);
+  } else {
+    for (var i = Math.floor(last_frame_count); 
+             i != Math.floor(frame_count); i += replay_dir) {
+      gam.ProcessFrame(i);
+    }
+  }
+
+  last_frame_count = frame_count;
   
   var ctx = canvas.getContext('2d');
   
@@ -116,7 +126,7 @@ function SliderUpdate() {
 
 function Pause() {
   paused = !paused;
-  document.querySelector('#TIMELINE').value = Math.floor(frame_count);
+  document.querySelector('#TIMELINE').value = frame_count;
 }
 
   </script>
