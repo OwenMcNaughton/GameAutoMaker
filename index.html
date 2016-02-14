@@ -54,13 +54,19 @@ var PIX_TOL = 1,
 var fps, last_date, second = 0, frame_count = 0, last_frame_count = 0,
     replay_speed = 1, paused = false, replay_dir = 1;
 
-var canvas = document.getElementById('canvas');
-
 var nes = new JSNES({
   'ui': $('#emulator').JSNESUI()
 });
 
 var gam = new GameAutoMaker(nes.frames, PIX_TOL, MOV_TOL);
+
+var canvas = document.getElementById('canvas');
+
+canvas.addEventListener('mousemove', function(evt) {
+  var rect = canvas.getBoundingClientRect();
+  var mouse = {x: evt.clientX - rect.left, y: evt.clientY - rect.top};
+  gam.MouseMove(mouse);
+}, false);
 
 window.requestAnimationFrame(Draw);
 
