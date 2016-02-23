@@ -27,6 +27,7 @@
     <label class="lab">Frame</label>&nbsp
     <output class="lab" id="Fr_LAB">1</output>
     <button onclick="Pause();" type="button">Pause</button>
+    <button onclick="NextFrame();" type="button">Next</button>
     <br>
     
     <button onclick="SaveData()" type="button">SaveData</button>
@@ -83,9 +84,7 @@ function Draw() {
     }
   }
   
-  if (paused) {
-    gam.ProcessFrame(frame_count);
-  } else {
+  if (!paused) {
     for (var i = Math.floor(last_frame_count); 
              i != Math.floor(frame_count); i += replay_dir) {
       gam.ProcessFrame(i);
@@ -133,6 +132,14 @@ function SliderUpdate() {
 function Pause() {
   paused = !paused;
   document.querySelector('#TIMELINE').value = frame_count;
+}
+
+function NextFrame() {
+  if (paused) {
+    frame_count++;
+    gam.ProcessFrame(Math.floor(frame_count));
+    document.querySelector('#TIMELINE').value = frame_count;
+  }
 }
 
   </script>

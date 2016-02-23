@@ -14,6 +14,8 @@ GameAutoMaker.prototype = {
     this.frames = frames;
   },
 
+  
+
   ProcessFrame: function(idx) {
     var sprite_groups = [];
     var old_sprite_groups = this.sprite_groups;
