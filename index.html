@@ -12,7 +12,7 @@
   <div id="emulator"></div>
   
   <div>
-    <canvas id="canvas" width="256" height="256"></canvas>
+    <canvas id="canvas" width="512" height="256"></canvas>
     <br>
     
     <input name="REPLAY_SPEED" id="REPLAY_SPEED" type="range" min="0.02" 
@@ -95,7 +95,7 @@ function Draw() {
   
   var ctx = canvas.getContext('2d');
   
-  ctx.clearRect(0, 0, 256, 256);
+  ctx.clearRect(0, 0, 512, 256);
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, 256, 256);
   

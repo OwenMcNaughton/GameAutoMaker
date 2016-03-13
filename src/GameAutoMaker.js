@@ -1,8 +1,21 @@
+var button_map = new Map();
+button_map.set(0, "KEY_A");
+button_map.set(1, "KEY_B");
+button_map.set(2, "KEY_SELECT");
+button_map.set(3, "KEY_START");
+button_map.set(4, "KEY_UP");
+button_map.set(5, "KEY_DOWN");
+button_map.set(6, "KEY_LEFT");
+button_map.set(7, "KEY_RIGHT");
+
+
 function GameAutoMaker(frames, pix_tol, move_tol) {
   this.frames = frames;
   this.pix_tol = pix_tol;
   this.move_tol = move_tol;
   this.sprite_groups = [];
+  this.inputs = [];
+  this.input;
 
   this.last_frame = 0;
 
@@ -14,13 +27,14 @@ GameAutoMaker.prototype = {
     this.frames = frames;
   },
 
-  
-
   ProcessFrame: function(idx) {
     var sprite_groups = [];
     var old_sprite_groups = this.sprite_groups;
     var frame = this.frames[idx];
     if (frame == undefined) return;
+    
+    this.input = frame.input;
+    this.inputs.push(frame.input);
 
     for (var key of this.colors.keys()) {
       this.colors[key] = true;
@@ -43,7 +57,6 @@ GameAutoMaker.prototype = {
       }
     }
 
-
     for (var sg of sprite_groups) {
       sg.vel = {x: 0, y: 0};
       for (var osg of old_sprite_groups) {
@@ -54,6 +67,9 @@ GameAutoMaker.prototype = {
           sg.trail = osg.trail;
           sg.age = osg.age + 1;
           sg.hit = osg.hit;
+          sg.velhist = osg.velhist;
+          sg.still_cnt = osg.still_cnt;
+          sg.button_correlates = osg.button_correlates;
           var tl = sg.trail.length;
           var vel_count = tl >= 5 ? 5 : tl;
           for (var i = 1; i < vel_count; i++) {
@@ -61,13 +77,18 @@ GameAutoMaker.prototype = {
             sg.vel.y += sg.trail[tl-i].y - sg.trail[tl-i-1].y;
           }
           sg.vel.x /= vel_count; sg.vel.y /= vel_count;
-          sg.vel.x = sg.vel.x.toFixed(2); sg.vel.y = sg.vel.y.toFixed(2);
           
           if (dist > .1) {
             sg.trail.push(osg.c);
+            sg.still_cnt = 0;
+          } else {
+            sg.still_cnt++;
+            if (sg.still_cnt > 3) {
+              sg.vel = {x: 0, y: 0};
+            }
           }
-        } else {
-
+          
+          sg.velhist.push(sg.vel);
         }
       }
     }
@@ -79,6 +100,16 @@ GameAutoMaker.prototype = {
     }
 
     this.sprite_groups = sprite_groups;
+    
+    this.CorrelateInput(idx);
+    if (idx % 20 == 0) {
+      var str = "frame: " + idx + "\n";
+      for (var sg of this.sprite_groups) {
+        str += "\tSPR: " + sg.color + "\n" + this.ButtonCorrelatesToString(sg);
+      }
+      console.log(str);
+    }
+    
     this.last_frame = idx;
   },
 
@@ -103,7 +134,7 @@ GameAutoMaker.prototype = {
   CreateSpriteGroup: function(sprite, others) {
     var sg = {
       s: [sprite.s], c: Centroid([sprite.s]), trail: [], age: 0, hit: false,
-      vel: {x: 0, y: 0}
+      vel: {x: 0, y: 0}, velhist: [], button_correlates: [], still_cnt: 0
     };
     for (var other of others) {
       if (sprite != other && other.b) {
@@ -117,6 +148,56 @@ GameAutoMaker.prototype = {
     return sg;
   },
 
+  CorrelateInput: function(idx) {
+    if (this.inputs[idx] == undefined) return;
+    
+    for (var sg of this.sprite_groups) {
+      if (sg.age > 10) {
+        var vh = sg.velhist;
+        var vel_diff = {
+          x: vh[vh.length-1].x - vh[vh.length-2].x,
+          y: vh[vh.length-1].y - vh[vh.length-2].y
+        };
+        
+        if (sg.color == "#009933") {
+          var a = 2;
+        }
+        
+        //if (vel_diff.x != 0 && vel_diff.y != 0) {
+          for (var i = 0; i != this.inputs[idx].length; i++) {
+            if (this.input[i] == 1) {
+              if (sg.button_correlates[i] == undefined) {
+                sg.button_correlates[i] = [];
+              }
+              sg.button_correlates[i].push(vh[vh.length-1]);
+            }
+          }
+        //}
+      }
+    }
+  },
+  
+  ButtonCorrelatesToString: function(sg) {
+    var str = "";
+    var cnt = -1;
+    for (var bc of sg.button_correlates) {
+      cnt++;
+      if (bc == undefined) continue;
+      var avg_vel_diff = {x: 0, y: 0};
+      for (var i = 0; i != bc.length; i++) {
+        if (!isNaN(bc[i].x && !isNaN(bc[i].y))) {
+          avg_vel_diff.x += bc[i].x;
+          avg_vel_diff.y += bc[i].y;
+        }
+      }
+      avg_vel_diff.x /= bc.length;
+      avg_vel_diff.y /= bc.length;
+      if (isNaN(avg_vel_diff.x) || isNaN(avg_vel_diff.y)) continue;
+      str += "\t\t" + button_map.get(cnt) + ": " + avg_vel_diff.x + " " + avg_vel_diff.y + "\n";
+    }
+    return str;
+  },
+  
   Draw: function(ctx) {
     ctx.fillStyle = "#FFFFFF";
     ctx.font = "10px Arial";
@@ -138,7 +219,8 @@ GameAutoMaker.prototype = {
 
       if (sg.hit) {
         ctx.fillText("" + sg.age, tl.x, tl.y-12);
-        ctx.fillText("" + sg.vel.x + " " + sg.vel.y, tl.x, tl.y-2);
+        ctx.fillText("" + sg.vel.x.toFixed(2) + " " + 
+                     sg.vel.y.toFixed(2), tl.x, tl.y-2);
       }
 
       ctx.beginPath();
@@ -166,6 +248,11 @@ GameAutoMaker.prototype = {
         ctx.stroke();
       }
     }
+    
+    if (this.input != undefined) {
+      DrawNesController(ctx, this.input);
+    }
+    
   },
   
   MouseMove: function(mouse) {

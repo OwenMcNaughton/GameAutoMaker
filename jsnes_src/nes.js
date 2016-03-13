@@ -43,7 +43,7 @@ var JSNES = function(opts) {
     this.frameTime = 1000 / this.opts.preferredFrameRate;
     
     // OwenMcNaughton
-        this.current_frame = {sprites: []};
+        this.current_frame = {sprites: [], input: [0, 0, 0, 0, 0, 0, 0, 0]};
         this.frames = [];
     
     this.ui = new this.opts.ui(this);
@@ -157,7 +157,7 @@ JSNES.prototype = {
         
         // OwenMcNaughton
             this.frames.push(this.current_frame);
-            this.current_frame = {sprites: []};
+            this.current_frame = {sprites: [], input: [0, 0, 0, 0, 0, 0, 0, 0]};
     },
     
     printFps: function() {

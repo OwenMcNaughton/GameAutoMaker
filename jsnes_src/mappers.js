@@ -285,6 +285,9 @@ JSNES.Mappers[0].prototype = {
             case 6:
             case 7:
                 ret = this.nes.keyboard.state1[this.joy1StrobeState];
+                if (ret != 64) {
+                    this.nes.current_frame.input[this.joy1StrobeState] = 1;
+                }
                 break;
             case 8:
             case 9:

@@ -76,3 +76,35 @@ function HexToRgb(hex) {
     b: parseInt(result[3], 16)
   } : null;
 }
+
+var x = 0, y = 0;
+function DrawNesController(ctx, input) {
+  ctx.strokeStyle = "#222222";
+  ctx.fillStyle = "#333333";
+  ctx.lineWidth = 2;
+  
+  ctx.beginPath();
+  ctx.rect(260, 100, 15, 15); // left
+  ctx.rect(275, 85, 15, 15);  // up
+  ctx.rect(275, 115, 15, 15); // down
+  ctx.rect(290, 100, 15, 15); // right
+  ctx.rect(320, 100, 15, 15); // select
+  ctx.rect(340, 100, 15, 15);  // start
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.strokeStyle = "#CC3333"
+  ctx.rect(370, 100, 15, 15); // a
+  ctx.rect(390, 100, 15, 15); // b
+  ctx.stroke();
+  
+  if (input[6] == 1) ctx.fillRect(260, 100, 15, 15);
+  if (input[4] == 1) ctx.fillRect(275, 85, 15, 15);
+  if (input[5] == 1) ctx.fillRect(275, 115, 15, 15);
+  if (input[7] == 1) ctx.fillRect(290, 100, 15, 15);
+  if (input[2] == 1) ctx.fillRect(320, 100, 15, 15);
+  if (input[3] == 1) ctx.fillRect(340, 100, 15, 15);
+  
+  ctx.fillStyle = "#cc3333";
+  if (input[0] == 1) ctx.fillRect(370, 100, 15, 15); // a
+  if (input[1] == 1) ctx.fillRect(390, 100, 15, 15); // b
+}
